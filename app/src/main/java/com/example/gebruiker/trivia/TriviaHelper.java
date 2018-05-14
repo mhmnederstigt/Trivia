@@ -35,16 +35,16 @@ public class TriviaHelper implements com.android.volley.Response.Listener<JSONAr
         this.context = context;
     }
 
-
-
     @Override
     public void onResponse(JSONArray response) {
+        Log.d("hoi", response.toString());
 
         // convert incoming json to question type
         try {
             String question = response.getJSONObject(0).getString("question");
             String correctAnswer = response.getJSONObject(0).getString("answer");
-            Question retrievedQuestion = new Question(question, correctAnswer);
+            int value = response.getJSONObject(0).getInt("value");
+            Question retrievedQuestion = new Question(question, correctAnswer, value);
 
             activity.gotQuestion(retrievedQuestion);
         }
@@ -70,7 +70,4 @@ public class TriviaHelper implements com.android.volley.Response.Listener<JSONAr
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest("http://jservice.io/api/random", this, this);
         queue.add(jsonArrayRequest);
     }
-
-
-
 }

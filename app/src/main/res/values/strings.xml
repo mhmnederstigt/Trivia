@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Trivia</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="about">About</string>
+    <string name="exit">Exit</string>
+    <string name="play">New game</string>
 </resources>
