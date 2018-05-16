@@ -27,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class HighscoreActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
@@ -66,8 +67,9 @@ public class HighscoreActivity extends AppCompatActivity {
                 for (DataSnapshot highs : dataSnapshot.child("highscores").getChildren()) {
                     Highscore h = highs.getValue(Highscore.class);
                     highscoreList.add(h);
-                    updateUI(user);
                 }
+
+                updateUI(user);
             }
 
             @Override
@@ -217,6 +219,7 @@ public class HighscoreActivity extends AppCompatActivity {
             greeting.setText("Hi!");
             username = "anonymous";
         } else {
+
             // display username in UI
             mDatabase.addValueEventListener(new ValueEventListener() {
                 @Override
@@ -234,6 +237,9 @@ public class HighscoreActivity extends AppCompatActivity {
                 }
             });
         }
+
+        // sort highscores
+        Collections.sort(highscoreList);
 
         // set adapter
         ListView lv = findViewById(R.id.list);

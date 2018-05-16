@@ -1,19 +1,15 @@
 package com.example.gebruiker.trivia;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
-public class Highscore implements Serializable {
+public class Highscore implements Comparable, Serializable {
     private String name;
     private int score;
 
     // empty constructor required for firebase
     public Highscore(){}
-
-//    // regular constructor
-//    public Highscore(String name, int score) {
-//       this.name = name;
-//       this.score = score;
-//    }
 
     // setters and getters
     public void setName(String name) {
@@ -29,4 +25,12 @@ public class Highscore implements Serializable {
     public int getScore() {
         return score;
     }
+
+
+    @Override
+    public int compareTo(@NonNull Object o) {
+        int comparescore =((Highscore) o).getScore();
+        return comparescore-this.score;
+    }
+
 }
