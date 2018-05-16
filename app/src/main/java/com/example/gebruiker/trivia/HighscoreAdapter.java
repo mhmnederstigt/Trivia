@@ -10,6 +10,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 
 import static android.media.CamcorderProfile.get;
@@ -39,13 +43,6 @@ public class HighscoreAdapter extends ArrayAdapter<Highscore> {
         TextView score = convertView.findViewById(R.id.score);
         score.setText(String.valueOf(highscoreList.get(position).getScore()));
 
-
-
-
-
-
-
         return convertView;
-
     }
 }

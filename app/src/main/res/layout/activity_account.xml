@@ -5,7 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".LoginActivity">
+    tools:context=".AccountActivity">
+
+    <EditText
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_weight="0"
+        android:ems="10"
+        android:hint="username"
+        android:inputType="textPersonName" />
 
     <EditText
         android:id="@+id/email"
@@ -17,7 +29,7 @@
         android:layout_weight="0"
         android:ems="10"
         android:hint="email"
-        android:inputType="textPersonName" />
+        android:inputType="textEmailAddress" />
 
     <EditText
         android:id="@+id/password"
@@ -28,17 +40,15 @@
         android:layout_marginTop="32dp"
         android:layout_weight="0"
         android:ems="10"
-        android:hint="password"
-        android:inputType="textWebPassword"
-        tools:layout_editor_absoluteX="83dp"
-        tools:layout_editor_absoluteY="195dp" />
+        android:hint="password ( min. 6 characters)"
+        android:inputType="textWebPassword" />
 
     <Button
-        android:id="@+id/login"
+        android:id="@+id/create"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="32dp"
         android:layout_weight="0"
-        android:text="Login" />
+        android:text="Create account" />
 
 </LinearLayout>

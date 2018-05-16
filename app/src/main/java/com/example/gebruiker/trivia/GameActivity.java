@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,38 +28,74 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
     int questionCount;
     int scoreCount;
     int scoreOfcurrentQuestion;
-    String user;
+    String username;
+    Question curQuestion;
+    EditText answerField;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        user = "Milou";
+        // create handles for UI display
+        answerField = findViewById(R.id.answer);
+        TextView greetingDisplay = findViewById(R.id.greeting);
 
-        questionCount = 0;
+        // set listener to next button
+        Button submit = findViewById(R.id.submit);
+        submit.setOnClickListener(new submitAnswerListener());
+
+        // show encouraging message if user is logged in
+        Intent intent = getIntent();
+        username = (String) intent.getSerializableExtra("username");
+
+        if (!username.equals("anonymous")) {
+            greetingDisplay.setText("You can do it, " + username + "!");
+        }
+
+        // initialize game starting values
+        questionCount = 1;
         scoreCount = 0;
 
         // retrieve question from API by creating a new request
         request = new TriviaHelper(this);
         request.getNextQuestion(this);
 
-        // set listener to next button
-        Button next = findViewById(R.id.next);
-        next.setOnClickListener(new nextListener());
     }
 
-    /// when button is pressed
-    public class nextListener implements View.OnClickListener {
+    /// when answer is submitted
+    public class submitAnswerListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            // check if answer is correct, update score
-            scoreCount += scoreOfcurrentQuestion;
 
-            // display next question if maximum isn't reached yet
+            // check if answer is correct
+            String givenAnswer = answerField.getText().toString().toLowerCase();
+            givenAnswer.replace("-", " ");
+
+            if (givenAnswer.equals(curQuestion.getCorrectAnswer().toLowerCase())) {
+                // assign points to score
+                scoreCount += curQuestion.getValue();
+
+                // inform user
+                Toast toast= Toast.makeText(getApplicationContext(),
+                        "That's correct!", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER|Gravity.CENTER_HORIZONTAL, 0, 300);
+                toast.show();
+            }
+            else {
+                Toast toast= Toast.makeText(getApplicationContext(),
+                        "Too bad, that's not right", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER|Gravity.CENTER_HORIZONTAL, 0, 300);
+                toast.show();
+            }
+
+            // display next question if maximum is not reached yet
             if (questionCount < 10) {
                 request.getNextQuestion(callback);
                 questionCount += 1;
+                TextView count = findViewById(R.id.counter);
+                count.setText("Question: " + questionCount);
             }
             else {
                 finish();
@@ -68,22 +106,15 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
     @Override
     public void gotQuestion(Question question) {
 
-        // when question is received, display it
+        curQuestion = question;
+
+        // when question is received, update UI
         TextView questionDisplay = findViewById(R.id.question);
         questionDisplay.setText(question.getQuestion());
+        answerField.setText("");
 
-        // display options for answers
-        RadioButton option1 = findViewById(R.id.option1);
-        option1.setText(question.getCorrectAnswer());
-        RadioButton option2 = findViewById(R.id.option2);
-        option2.setText(question.getCorrectAnswer());
-        RadioButton option3 = findViewById(R.id.option3);
-        option3.setText(question.getCorrectAnswer());
-        RadioButton option4 = findViewById(R.id.option4);
-        option4.setText(question.getCorrectAnswer());
-
-        scoreOfcurrentQuestion = question.getValue();
-        Log.d("hi", String.valueOf(scoreOfcurrentQuestion));
+        // for testing purposes log correct answer
+        Log.d("Correct answer:" ,curQuestion.getCorrectAnswer());
     }
 
     @Override
@@ -91,19 +122,27 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
 
         // when question is not loaded successfully, print error
         Toast.makeText(getApplicationContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+
+        // try again
+        // retrieve question from API by creating a new request
+        request = new TriviaHelper(this);
+        request.getNextQuestion(this);
     }
 
     @Override
     // pass on score when game is over, or user presses back button
     public void finish() {
-        int score = scoreCount;
-        Highscore newHighscore = new Highscore(user, score);
 
-        // prepare
+        // create new highscore
+        Highscore newHighscore = new Highscore();
+        newHighscore.setName(username);
+        newHighscore.setScore(scoreCount);
+
+        // put highscore in intent
         Intent intent = new Intent();
         intent.putExtra("newHighscore", newHighscore);
 
-        // activity finished ok, return score
+        // return
         setResult(RESULT_OK, intent);
         super.finish();
     }

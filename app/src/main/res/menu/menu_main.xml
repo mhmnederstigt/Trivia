@@ -3,11 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".HighscoreActivity">
 
     <item
-        android:id="@+id/add" android:icon="@android:drawable/ic_menu_add" app:showAsAction="never"   android:title="@string/login"/>
+        android:id="@+id/login" android:icon="@android:drawable/ic_menu_add" app:showAsAction="never"   android:title="@string/login"/>
     <item
         android:id="@+id/play" android:icon="@android:drawable/ic_media_play" app:showAsAction="always"   android:title="@string/play"/>
     <item
-        android:id="@+id/about" android:icon="@android:drawable/ic_dialog_info" app:showAsAction="never" android:title="@string/about">
+        android:id="@+id/create" app:showAsAction="never" android:title="New account">
+    </item>
+    <item
+        android:id="@+id/logout" app:showAsAction="never" android:title="Logout">
     </item>
     <item
         android:id="@+id/exit" android:icon="@android:drawable/ic_lock_power_off" app:showAsAction="always" android:title="@string/exit">
