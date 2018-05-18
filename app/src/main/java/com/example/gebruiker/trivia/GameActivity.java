@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 public class GameActivity extends AppCompatActivity implements TriviaHelper.Callback {
     TriviaHelper request;
-    TriviaHelper.Callback callback = this;
+    TriviaHelper.Callback callback;
     int questionCount;
     int scoreCount;
     String username;
@@ -25,6 +25,9 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+        callback = this;
+
+        request = new TriviaHelper(this);
 
         // create handles for UI display
         answerField = findViewById(R.id.answer);
@@ -34,6 +37,22 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
         Button submit = findViewById(R.id.submit);
         submit.setOnClickListener(new submitAnswerListener());
 
+        // check if a game is still running, if so display game
+        if (savedInstanceState != null){
+            curQuestion = (Question) savedInstanceState.getSerializable("curQuestion");
+            scoreCount = savedInstanceState.getInt("scoreCount");
+            questionCount = savedInstanceState.getInt("questionCount");
+            updateUI();
+        }
+        else {
+            // initialize game starting values
+            questionCount = 1;
+            scoreCount = 0;
+
+            // retrieve question from API by creating a new request
+            request.getNextQuestion(this);
+        }
+
         // show encouraging message if user is logged in
         Intent intent = getIntent();
         username = (String) intent.getSerializableExtra("username");
@@ -41,15 +60,6 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
         if (!username.equals("anonymous")) {
             greetingDisplay.setText("You can do it, " + username + "!");
         }
-
-        // initialize game starting values
-        questionCount = 1;
-        scoreCount = 0;
-
-        // retrieve question from API by creating a new request
-        request = new TriviaHelper(this);
-        request.getNextQuestion(this);
-
     }
 
     /// when answer is submitted
@@ -82,13 +92,21 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
             if (questionCount < 10) {
                 request.getNextQuestion(callback);
                 questionCount += 1;
-                TextView count = findViewById(R.id.counter);
-                count.setText("Question: " + questionCount);
+                updateUI();
             }
             else {
                 finish();
             }
         }
+    }
+
+    public void updateUI(){
+        TextView count = findViewById(R.id.counter);
+        count.setText("Question: " + questionCount);
+
+        TextView questionDisplay = findViewById(R.id.question);
+        questionDisplay.setText(curQuestion.getQuestion());
+        answerField.setText("");
     }
 
     @Override
@@ -97,9 +115,7 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
         curQuestion = question;
 
         // when question is received, update UI
-        TextView questionDisplay = findViewById(R.id.question);
-        questionDisplay.setText(question.getQuestion());
-        answerField.setText("");
+        updateUI();
 
         // for testing purposes log correct answer
         Log.d("Correct answer:", question.getCorrectAnswer());
@@ -133,5 +149,14 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
         // return
         setResult(RESULT_OK, intent);
         super.finish();
+    }
+
+
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+
+        savedInstanceState.putSerializable("curQuestion", curQuestion);
+        savedInstanceState.putInt("scoreCount", scoreCount);
+        savedInstanceState.putInt("questionCount", questionCount);
     }
 }

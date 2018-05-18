@@ -43,7 +43,6 @@ public class HighscoreActivity extends AppCompatActivity {
 
         // set up database
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        database.setLogLevel(Logger.Level.DEBUG);
 
         // declare Firebase authorization and database
         mAuth = FirebaseAuth.getInstance();
