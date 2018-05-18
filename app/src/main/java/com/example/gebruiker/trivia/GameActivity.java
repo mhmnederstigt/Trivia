@@ -1,6 +1,5 @@
 package com.example.gebruiker.trivia;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,25 +8,14 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Logger;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity implements TriviaHelper.Callback {
     TriviaHelper request;
     TriviaHelper.Callback callback = this;
     int questionCount;
     int scoreCount;
-    int scoreOfcurrentQuestion;
     String username;
     Question curQuestion;
     EditText answerField;
@@ -80,7 +68,7 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
                 // inform user
                 Toast toast= Toast.makeText(getApplicationContext(),
                         "That's correct!", Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.CENTER|Gravity.CENTER_HORIZONTAL, 0, 300);
+                toast.setGravity(Gravity.CENTER|Gravity.CENTER_HORIZONTAL, 0, -100);
                 toast.show();
             }
             else {
@@ -105,7 +93,7 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
 
     @Override
     public void gotQuestion(Question question) {
-
+        // set curQuestion to validate answer
         curQuestion = question;
 
         // when question is received, update UI
@@ -114,7 +102,7 @@ public class GameActivity extends AppCompatActivity implements TriviaHelper.Call
         answerField.setText("");
 
         // for testing purposes log correct answer
-        Log.d("Correct answer:" ,curQuestion.getCorrectAnswer());
+        Log.d("Correct answer:", question.getCorrectAnswer());
     }
 
     @Override

@@ -1,11 +1,11 @@
 package com.example.gebruiker.trivia;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -24,18 +24,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Logger;
 import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class HighscoreActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
-
     private DatabaseReference mDatabase;
 
-    FirebaseUser user;
     String username;
 
     ArrayList<Highscore> highscoreList = new ArrayList<>();
@@ -50,15 +45,11 @@ public class HighscoreActivity extends AppCompatActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         database.setLogLevel(Logger.Level.DEBUG);
 
-        // initialize authorization
+        // declare Firebase authorization and database
         mAuth = FirebaseAuth.getInstance();
         mDatabase = database.getReference("trivia");
 
-        // default user is anonymous
-        username = "anonymous";
-        user = null;
-
-        // read highscores from the database and update UI
+        // if highscores change, read highscores from the database and update UI
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -69,6 +60,7 @@ public class HighscoreActivity extends AppCompatActivity {
                     highscoreList.add(h);
                 }
 
+                FirebaseUser user = mAuth.getCurrentUser();
                 updateUI(user);
             }
 
@@ -80,6 +72,14 @@ public class HighscoreActivity extends AppCompatActivity {
         });
 
      }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -106,11 +106,10 @@ public class HighscoreActivity extends AppCompatActivity {
             startActivityForResult(intentCreate, 3);
             return(true);
         case R.id.logout:
-            mAuth.getInstance().signOut();
-            user = null;
-            updateUI(user);
+            logout();
             return true;
         case R.id.exit:
+            mAuth.signOut();
             finish();
             return(true);
     }
@@ -121,38 +120,50 @@ public class HighscoreActivity extends AppCompatActivity {
     // after return to activity, update UI and Firebase
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        // after a game
+        // after a game has been played
         if (resultCode == RESULT_OK && requestCode == 1) {
 
             // add new highscore
             if (data.hasExtra("newHighscore")) {
                 Highscore newHighscore = (Highscore) data.getExtras().getSerializable("newHighscore");
+                Toast toast= Toast.makeText(getApplicationContext(),
+                        "Points: " + newHighscore.getScore(), Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER|Gravity.CENTER_HORIZONTAL, 0, 300);
+                toast.show();
 
                 // only store highscore if is not null
                 if (newHighscore.getScore()>0){
                     mDatabase.child("highscores").push().setValue(newHighscore);
                 }
 
+                FirebaseUser user = mAuth.getCurrentUser();
                 updateUI(user);
             }
         }
 
-        // after login
+        // after pressing login button
         else if (resultCode == RESULT_OK && requestCode == 2) {
             if (data.hasExtra("email")) {
+
+                // login with provided user name and password
                 String email = (String) data.getExtras().getSerializable("email");
                 String password = (String) data.getExtras().getSerializable("password");
                 login(email, password);
             }
         }
 
-        // after creating an account
+        // after pressing create acount button
         else if (resultCode == RESULT_OK && requestCode == 3) {
             if (data.hasExtra("email")) {
+
                 String email = (String) data.getExtras().getSerializable("email");
                 String password = (String) data.getExtras().getSerializable("password");
                 String username = (String) data.getExtras().getSerializable("name");
+
+                // create user account
                 createUser(email, password, username);
+
+                // login with that account
                 login(email, password);
             }
         }
@@ -168,20 +179,24 @@ public class HighscoreActivity extends AppCompatActivity {
                             // on success, update UI with the signed-in user's name
                             Toast.makeText(HighscoreActivity.this, "You're logged in now!",
                                     Toast.LENGTH_SHORT).show();
-                            user = mAuth.getCurrentUser();
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            updateUI(user);
 
                         } else {
 
                             // if sign in fails, display a message to the user
                             Toast.makeText(HighscoreActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-                            user = null;
+                            updateUI(null);
                         }
-
-                        // update UI
-                        updateUI(user);
                     }
                 });
+    }
+
+    public void logout(){
+        mAuth.getInstance().signOut();
+        updateUI(null);
+
     }
 
     public void createUser(final String email, final String password, final String name) {
@@ -196,11 +211,12 @@ public class HighscoreActivity extends AppCompatActivity {
                                     Toast.LENGTH_SHORT).show();
 
                             // add name to existing database
-                            user = mAuth.getCurrentUser();
+                            FirebaseUser user = mAuth.getCurrentUser();
                             mDatabase.child("users").child(user.getUid()).child("username").setValue(name.toString());
 
-                            // login directly
-                            login(email, password);
+                            // and make username accessible for other functions
+                            username = name;
+
                         } else {
 
                             // if sign in fails, display a message to the user
@@ -211,31 +227,33 @@ public class HighscoreActivity extends AppCompatActivity {
                 });
     }
 
-    public void updateUI(FirebaseUser userUpdate) {
-        final TextView greeting = findViewById(R.id.greeting);
-
-        // don't display a name if no one is logged in
-        if (userUpdate == null) {
-            greeting.setText("Hi!");
-            username = "anonymous";
-        } else {
-
+    public void updateUI(FirebaseUser user) {
+        if (user != null) {
+            // user is signed in
             // display username in UI
-            mDatabase.addValueEventListener(new ValueEventListener() {
+            mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    String name = dataSnapshot.child("users").child(user.getUid()).child("username").getValue(String.class);
-                    username = name;
-                    Log.d("oi", name);
-                    greeting.setText("Hi " + username + "!");
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    username = dataSnapshot.child("users").child(user.getUid()).child("username").getValue(String.class);
+                    String helloMessage = "Hi " + username + "!";
+                    TextView greeting = findViewById(R.id.greeting);
+                    greeting.setText(helloMessage);
                 }
+
 
                 @Override
                 public void onCancelled(DatabaseError error) {
-                    // Failed to read value
+                    // failed to read value
                     Log.w("Error", "Failed to read value.", error.toException());
                 }
             });
+
+        } else {
+            // no user is signed in
+            TextView greeting = findViewById(R.id.greeting);
+            greeting.setText(R.string.anonymous_greeting);
+            username = getString(R.string.anonymous);
         }
 
         // sort highscores

@@ -28,9 +28,9 @@ public class Highscore implements Comparable, Serializable {
 
 
     @Override
-    public int compareTo(@NonNull Object o) {
-        int comparescore =((Highscore) o).getScore();
-        return comparescore-this.score;
+    public int compareTo(@NonNull Object obj) {
+        int compareScore =((Highscore) obj).getScore();
+        return compareScore-this.score;
     }
 
 }

@@ -5,4 +5,6 @@
     <string name="about">About</string>
     <string name="exit">Exit</string>
     <string name="play">New game</string>
+    <string name="anonymous">anonymous</string>
+    <string name="anonymous_greeting">Hi!</string>
 </resources>
